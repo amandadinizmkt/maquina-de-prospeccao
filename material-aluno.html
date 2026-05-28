@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Máquina de Prospecção com IA | Clube Divos da IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:           #070D0D;
+  --surface:      #0F1818;
+  --surface2:     #162020;
+  --surface3:     #1C2828;
+  --border:       rgba(196,144,142,0.12);
+  --border2:      rgba(196,144,142,0.22);
+  --cherry:       #741E31;
+  --cherry-dim:   rgba(116,30,49,0.25);
+  --rose:         #C4908E;
+  --blush:        #F5CBD7;
+  --cream:        #FFF7EC;
+  --muted:        rgba(255,247,236,0.5);
+  --muted2:       rgba(255,247,236,0.7);
+  --green:        #A8FFC0;
+  --green-dim:    rgba(168,255,192,0.08);
+  --yellow:       #FFE873;
+  --yellow-dim:   rgba(255,232,115,0.08);
+  --pink:         #FF6B9D;
+  --terminal-bg:  #040C0C;
+  --sidebar-w:    260px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--cream);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-logo {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo .club {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--rose);
+  margin-bottom: 4px;
+}
+.sidebar-logo .title {
+  font-family: 'Playfair Display', serif; font-size: 15px;
+  color: var(--cream); line-height: 1.3;
+}
+.sidebar-logo .title em { color: var(--blush); font-style: italic; }
+
+.sidebar-nav { padding: 16px 12px; flex: 1; }
+
+.nav-section {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.25em;
+  text-transform: uppercase; color: rgba(196,144,142,0.4);
+  padding: 14px 12px 6px;
+}
+
+.nav-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 7px;
+  font-size: 12.5px; color: var(--muted2);
+  text-decoration: none;
+  transition: all 0.15s;
+  margin-bottom: 1px;
+}
+.nav-link:hover { background: var(--surface2); color: var(--cream); }
+.nav-link .num {
+  width: 20px; height: 20px; border-radius: 5px;
+  background: var(--cherry-dim); color: var(--blush);
+  font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.nav-link .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border2); flex-shrink: 0;
+}
+.nav-link.active { background: var(--surface2); color: var(--cream); }
+.nav-link.active .dot { background: var(--rose); }
+.nav-link.active .num { background: var(--cherry); }
+
+.sidebar-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 10px; color: rgba(196,144,142,0.3);
+  line-height: 1.5;
+}
+
+/* ── MAIN ── */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-height: 100vh;
+}
+
+/* ── HERO ── */
+.hero {
+  background:
+    radial-gradient(ellipse at 80% 0%, rgba(116,30,49,0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 10% 100%, rgba(196,144,142,0.1) 0%, transparent 45%),
+    var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 60px 56px 48px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 320px; height: 320px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(196,144,142,0.06) 0%, transparent 70%);
+  top: -80px; right: -80px;
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--rose);
+  margin-bottom: 14px;
+}
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 40px; font-weight: 700; line-height: 1.1;
+  color: var(--cream); margin-bottom: 10px;
+}
+.hero-title em { color: var(--blush); font-style: italic; }
+.hero-sub {
+  font-size: 15px; color: var(--muted2); max-width: 540px;
+  line-height: 1.65; margin-bottom: 28px;
+}
+.hero-badges { display: flex; gap: 10px; flex-wrap: wrap; }
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; padding: 5px 14px;
+  border-radius: 100px;
+}
+.badge-berry { background: var(--cherry-dim); border: 1px solid rgba(116,30,49,0.5); color: var(--blush); }
+.badge-green { background: var(--green-dim); border: 1px solid rgba(168,255,192,0.2); color: var(--green); }
+.badge-yellow { background: var(--yellow-dim); border: 1px solid rgba(255,232,115,0.2); color: var(--yellow); }
+.badge-muted { background: var(--surface2); border: 1px solid var(--border); color: var(--muted2); }
+
+/* ── CONTENT ── */
+.content {
+  padding: 48px 56px;
+  max-width: 860px;
+}
+
+/* ── SECTIONS ── */
+.section {
+  margin-bottom: 64px;
+  scroll-margin-top: 32px;
+}
+
+.section-header {
+  display: flex; align-items: flex-start; gap: 16px;
+  margin-bottom: 28px;
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--cherry); color: var(--cream);
+  font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 3px;
+}
+.section-num-plain {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--rose);
+  font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 3px;
+}
+.section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.25em;
+  text-transform: uppercase; color: var(--rose); margin-bottom: 4px;
+}
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 700; color: var(--cream);
+  line-height: 1.15;
+}
+.section-title em { color: var(--blush); font-style: italic; }
+
+.section-desc {
+  font-size: 13.5px; color: var(--muted2); line-height: 1.7;
+  margin-bottom: 22px; max-width: 680px;
+}
+
+/* ── CODE BLOCKS ── */
+.code-wrap {
+  position: relative;
+  margin: 14px 0;
+}
+.code-label {
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.2em;
+  text-transform: uppercase; color: rgba(196,144,142,0.5);
+  padding: 10px 18px 0;
+  background: var(--terminal-bg);
+  border: 1px solid rgba(168,255,192,0.1);
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  display: flex; align-items: center; gap: 8px;
+}
+.code-label .dots { display: flex; gap: 5px; }
+.code-label .dot-r { width: 9px; height: 9px; border-radius: 50%; background: #FF5F57; }
+.code-label .dot-y { width: 9px; height: 9px; border-radius: 50%; background: #FEBC2E; }
+.code-label .dot-g { width: 9px; height: 9px; border-radius: 50%; background: #28C840; }
+
+pre {
+  background: var(--terminal-bg);
+  border: 1px solid rgba(168,255,192,0.1);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--green);
+}
+pre.env-block { color: var(--cream); }
+pre.sql-block { color: #93C5FD; }
+pre .comment { color: rgba(168,255,192,0.3); }
+pre .key { color: var(--yellow); }
+pre .val { color: #FFB3C6; }
+pre .kw { color: #C084FC; }
+pre .str { color: #86EFAC; }
+pre .fn { color: #67E8F9; }
+pre .hl { background: rgba(116,30,49,0.35); border-radius: 3px; padding: 1px 4px; }
+
+.copy-btn {
+  position: absolute;
+  top: 10px; right: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--rose);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  z-index: 10;
+}
+.copy-btn:hover { background: var(--cherry-dim); color: var(--blush); }
+.copy-btn.copied { color: var(--green); border-color: rgba(168,255,192,0.3); }
+
+/* ── INFO CARDS ── */
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+.card-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+
+.info-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.info-card-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.info-card-name { font-size: 13px; font-weight: 600; color: var(--cream); }
+.info-card-text { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.info-card-url {
+  display: block; margin-top: 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  color: var(--rose); opacity: 0.8; text-decoration: none;
+}
+.info-card-url:hover { opacity: 1; text-decoration: underline; }
+
+/* ── STEP LIST ── */
+.steps { display: flex; flex-direction: column; gap: 0; }
+.step {
+  display: flex; gap: 0;
+  position: relative;
+}
+.step-line {
+  display: flex; flex-direction: column; align-items: center;
+  margin-right: 18px; flex-shrink: 0;
+}
+.step-circle {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--cherry); color: var(--cream);
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; z-index: 1;
+}
+.step-connector {
+  width: 2px; flex: 1; min-height: 16px;
+  background: linear-gradient(180deg, rgba(116,30,49,0.6), rgba(116,30,49,0.1));
+  margin: 4px 0;
+}
+.step:last-child .step-connector { display: none; }
+.step-body {
+  flex: 1; padding-bottom: 24px;
+}
+.step-title {
+  font-size: 13.5px; font-weight: 700; color: var(--blush);
+  margin-bottom: 6px; padding-top: 4px;
+}
+.step-text { font-size: 12.5px; color: var(--muted2); line-height: 1.65; }
+
+/* ── PROMPT CARDS ── */
+.prompt-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--rose);
+  border-radius: 0 10px 10px 0;
+  padding: 16px 20px;
+  margin-bottom: 14px;
+  position: relative;
+}
+.prompt-card-label {
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--rose);
+  margin-bottom: 8px;
+}
+.prompt-card-text {
+  font-size: 13px; color: var(--cream);
+  line-height: 1.65; font-style: italic;
+  font-family: 'Playfair Display', serif;
+}
+
+/* ── WARNING / NOTE ── */
+.warn-box {
+  background: rgba(251,191,36,0.07);
+  border: 1px solid rgba(251,191,36,0.2);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin: 16px 0;
+  display: flex; gap: 12px; align-items: flex-start;
+  font-size: 13px; color: var(--muted2); line-height: 1.65;
+}
+.warn-box strong { color: #FCD34D; }
+.warn-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+.note-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--rose);
+  border-radius: 0 10px 10px 0;
+  padding: 12px 16px;
+  margin: 14px 0;
+  font-size: 12.5px; color: var(--muted2); line-height: 1.65;
+}
+.note-box strong { color: var(--blush); }
+
+.success-box {
+  background: var(--green-dim);
+  border: 1px solid rgba(168,255,192,0.2);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin: 14px 0;
+  font-size: 13px; color: var(--green); line-height: 1.65;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border2), transparent);
+  margin: 48px 0;
+}
+
+/* ── TABLE ── */
+.data-table { width: 100%; border-collapse: collapse; margin: 14px 0; }
+.data-table th {
+  text-align: left; padding: 10px 16px;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.2em;
+  text-transform: uppercase; color: rgba(196,144,142,0.5);
+  border-bottom: 1px solid var(--border);
+}
+.data-table td {
+  padding: 11px 16px; font-size: 13px;
+  border-bottom: 1px solid rgba(255,247,236,0.05);
+  color: var(--muted2);
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table td:first-child { color: var(--cream); font-weight: 500; }
+.cost-free { color: var(--green); font-weight: 600; }
+.cost-paid { color: var(--yellow); font-weight: 600; }
+.cost-optional { color: var(--rose); }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+.checklist li {
+  display: flex; gap: 10px; align-items: flex-start;
+  font-size: 13px; color: var(--muted2);
+}
+.check { color: var(--green); flex-shrink: 0; margin-top: 1px; }
+
+/* ── FLOW ── */
+.flow {
+  display: flex; align-items: center; gap: 6px;
+  flex-wrap: wrap; margin: 16px 0 24px;
+}
+.flow-item {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 10px 14px; text-align: center;
+  min-width: 80px;
+}
+.flow-item .f-num { font-size: 9px; color: var(--rose); font-weight: 700; letter-spacing: 0.1em; }
+.flow-item .f-name { font-size: 11.5px; color: var(--cream); font-weight: 600; margin-top: 2px; }
+.flow-arrow { color: rgba(196,144,142,0.3); font-size: 16px; }
+
+/* ── GARGALO CARD ── */
+.gargalo-list {
+  display: flex; flex-direction: column; gap: 8px; margin: 14px 0;
+}
+.gargalo-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-left: 3px solid rgba(116,30,49,0.7);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 16px;
+  font-size: 12.5px; color: var(--muted2);
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1.5;
+}
+
+/* ── INLINE CODE ── */
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px; color: var(--rose);
+  background: var(--surface2);
+  padding: 1px 6px; border-radius: 4px;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .card-grid { grid-template-columns: 1fr; }
+  .card-grid-3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ SIDEBAR ═══════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="club">Clube Divos da IA</div>
+    <div class="title">Máquina de<br>Prospecção com <em>IA</em></div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-section">Início</div>
+    <a href="#prereqs" class="nav-link"><span class="num">1</span> Pré-requisitos</a>
+    <a href="#instalacao" class="nav-link"><span class="num">2</span> Instalação</a>
+
+    <div class="nav-section">Usar a Máquina</div>
+    <a href="#buscar" class="nav-link"><span class="num">3</span> Buscar Leads</a>
+    <a href="#pesquisar" class="nav-link"><span class="num">4</span> Escolher e Pesquisar</a>
+    <a href="#mensagens" class="nav-link"><span class="num">5</span> Gerar Mensagens</a>
+
+    <div class="nav-section">Referência</div>
+    <a href="#prompts" class="nav-link"><span class="dot"></span> Prompts</a>
+    <a href="#fluxo" class="nav-link"><span class="dot"></span> Fluxo Completo</a>
+    <a href="#github" class="nav-link"><span class="dot"></span> GitHub</a>
+    <a href="#custos" class="nav-link"><span class="dot"></span> Custos</a>
+  </div>
+
+  <div class="sidebar-footer">
+    Amanda Diniz · Clube Divos da IA · 2026
+  </div>
+</nav>
+
+<!-- ═══════ MAIN ═══════ -->
+<div class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">✦ Material do Aluno · Guia Completo</div>
+    <h1 class="hero-title">Máquina de<br>Prospecção com <em>IA</em></h1>
+    <p class="hero-sub">Do zero à mensagem personalizada em 15 minutos. Claude Code busca os leads no Google Maps, pesquisa cada empresa e escreve a abordagem certa para cada uma.</p>
+    <div class="hero-badges">
+      <span class="badge badge-berry">🤖 Claude Code</span>
+      <span class="badge badge-green">🗺️ Google Maps</span>
+      <span class="badge badge-green">📊 Instagram</span>
+      <span class="badge badge-yellow">📄 DOCX pronto</span>
+      <span class="badge badge-muted">🐍 Python</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 01 — PRÉ-REQUISITOS -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="section" id="prereqs">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div>
+          <div class="section-label">Pré-requisito</div>
+          <h2 class="section-title">O que você precisa <em>antes</em></h2>
+        </div>
+      </div>
+
+      <p class="section-desc">Você precisa de uma única coisa instalada. O resto é instalado automaticamente pelo script de instalação.</p>
+
+      <div class="card-grid" style="grid-template-columns: 1fr;">
+        <div class="info-card">
+          <div class="info-card-top">
+            <span class="info-card-name">🤖 Claude Code</span>
+            <span class="badge badge-berry">obrigatório</span>
+          </div>
+          <div class="info-card-text">O Claude Code é o único pré-requisito. Tudo mais — Python, Scrapling, Playwright, python-docx — é instalado automaticamente na próxima etapa.</div>
+          <a class="info-card-url" href="https://claude.ai/code" target="_blank">→ claude.ai/code</a>
+        </div>
+      </div>
+
+      <div class="success-box">
+        ✅ <strong>Isso é tudo.</strong> Se você já tem o Claude Code instalado, pode ir direto para a seção 02.
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 02 — INSTALAÇÃO -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="section" id="instalacao">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div>
+          <div class="section-label">Uma vez só</div>
+          <h2 class="section-title">Instalação <em>automática</em></h2>
+        </div>
+      </div>
+
+      <p class="section-desc">Você faz isso uma única vez. Depois, a máquina fica pronta para usar sempre que precisar.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-line">
+            <div class="step-circle">1</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Clonar o repositório — diga ao Claude Code</div>
+            <div class="step-text">Abra o Claude Code e diga exatamente isso:</div>
+            <div class="code-wrap">
+              <div class="code-label">
+                <div class="dots"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+                Comando para o Claude Code
+              </div>
+              <pre id="cmd-claude">Clona o repositório github.com/amandadinizmkt/maquina-de-prospeccao e roda o instalar.py</pre>
+              <button class="copy-btn" onclick="copyCode('cmd-claude', this)">copiar</button>
+            </div>
+            <div class="step-text" style="margin-top:10px;">Ou, se preferir rodar no terminal manualmente:</div>
+            <div class="code-wrap">
+              <div class="code-label">
+                <div class="dots"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+                Terminal (alternativa manual)
+              </div>
+              <pre id="cmd-terminal">git clone https://github.com/amandadinizmkt/maquina-de-prospeccao.git
+cd maquina-de-prospeccao
+python3 instalar.py</pre>
+              <button class="copy-btn" onclick="copyCode('cmd-terminal', this)">copiar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-line">
+            <div class="step-circle">2</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">O que o instalar.py faz automaticamente</div>
+            <div class="step-text">O script verifica e instala tudo que a máquina precisa para funcionar:</div>
+            <ul class="checklist" style="margin-top:10px;">
+              <li><span class="check">✓</span><span><strong style="color:var(--blush)">Python 3.10+</strong> — verifica a versão instalada</span></li>
+              <li><span class="check">✓</span><span><strong style="color:var(--blush)">Scrapling</strong> — scraper que lê o Google Maps</span></li>
+              <li><span class="check">✓</span><span><strong style="color:var(--blush)">Playwright</strong> — abre e controla o navegador automaticamente</span></li>
+              <li><span class="check">✓</span><span><strong style="color:var(--blush)">python-docx</strong> — gera o arquivo DOCX com as mensagens prontas</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-line">
+            <div class="step-circle">3</div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Saída esperada no terminal</div>
+            <div class="step-text">Quando tudo estiver instalado, você vai ver:</div>
+            <div class="code-wrap">
+              <div class="code-label">
+                <div class="dots"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+                Saída do instalar.py
+              </div>
+              <pre id="cmd-output">✅ Python 3.14 — ok
+✅ Scrapling 0.4.8 — já instalado
+✅ Playwright Python — já instalado
+✅ python-docx — já instalado
+✅ Tudo instalado! Pronto para prospectar.</pre>
+              <button class="copy-btn" onclick="copyCode('cmd-output', this)">copiar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note-box">
+        <strong>Não tem Python?</strong> Se aparecer erro de versão do Python, baixe o Python 3.10 ou superior em <strong>python.org/downloads</strong>. Depois repita o comando do Passo 1.
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 03 — BUSCAR LEADS -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="section" id="buscar">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div>
+          <div class="section-label">Toda vez que for prospectar</div>
+          <h2 class="section-title">Buscar <em>leads</em></h2>
+        </div>
+      </div>
+
+      <p class="section-desc">Diga ao Claude Code o nicho e a cidade. Ele abre o Google Maps, rola a lista de resultados e salva tudo em uma planilha automaticamente.</p>
+
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+          Comando para o Claude Code
+        </div>
+        <pre id="cmd-buscar">Busca [tipo de empresa] em [cidade]</pre>
+        <button class="copy-btn" onclick="copyCode('cmd-buscar', this)">copiar</button>
+      </div>
+
+      <p style="font-size:13px; color:var(--muted2); margin: 20px 0 10px;"><strong style="color:var(--blush);">Exemplos reais:</strong></p>
+
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+          Exemplos de busca
+        </div>
+        <pre id="cmd-exemplos">Busca clínicas de estética em São Paulo
+Busca escritórios de advocacia em Belo Horizonte
+Busca lojas de beachwear em Florianópolis</pre>
+        <button class="copy-btn" onclick="copyCode('cmd-exemplos', this)">copiar</button>
+      </div>
+
+      <p style="font-size:13px; color:var(--muted2); margin: 24px 0 12px;"><strong style="color:var(--blush);">O que acontece depois que você envia o comando:</strong></p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-line">
+            <div class="step-circle">1</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Claude roda o prospectar.py</div>
+            <div class="step-text">O script abre o Google Maps automaticamente no navegador, já com a busca pelo nicho e cidade que você escolheu.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-line">
+            <div class="step-circle">2</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Rola a lista e captura os resultados</div>
+            <div class="step-text">O Playwright rola a lista de resultados automaticamente para carregar cerca de 30 empresas. Você pode ver o navegador abrindo — é normal.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-line">
+            <div class="step-circle">3</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Salva o CSV e abre a planilha</div>
+            <div class="step-text">Um arquivo CSV é salvo com todas as informações de cada empresa. A planilha abre automaticamente no Excel ou Numbers para você ver os leads.</div>
+            <ul class="checklist" style="margin-top:10px;">
+              <li><span class="check">→</span><span>Nome da empresa</span></li>
+              <li><span class="check">→</span><span>Avaliação no Google Maps (estrelas)</span></li>
+              <li><span class="check">→</span><span>Número de reviews</span></li>
+              <li><span class="check">→</span><span>Telefone</span></li>
+              <li><span class="check">→</span><span>Endereço completo</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="note-box">
+        <strong>Dica de nicho:</strong> Quanto mais específico o nicho, melhor a qualidade dos leads. "Clínicas de estética" é melhor do que "empresas de saúde". "Advogados especializados em família" é melhor do que "escritórios de advocacia".
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 04 — ESCOLHER E PESQUISAR -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="section" id="pesquisar">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div>
+          <div class="section-label">Passo 2 da prospecção</div>
+          <h2 class="section-title">Escolher e <em>pesquisar</em></h2>
+        </div>
+      </div>
+
+      <p class="section-desc">Com a planilha aberta, você escolhe quais leads o Claude vai pesquisar a fundo. Você pode indicar os números ou deixar o Claude escolher os melhores.</p>
+
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+          Opção 1 — você escolhe
+        </div>
+        <pre id="cmd-escolher1">Quero pesquisar os leads 3, 7 e 12</pre>
+        <button class="copy-btn" onclick="copyCode('cmd-escolher1', this)">copiar</button>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+          Opção 2 — Claude escolhe os melhores
+        </div>
+        <pre id="cmd-escolher2">Você escolhe os 5 com mais potencial para contratar gestão de redes</pre>
+        <button class="copy-btn" onclick="copyCode('cmd-escolher2', this)">copiar</button>
+      </div>
+
+      <p style="font-size:13px; color:var(--muted2); margin: 24px 0 12px;"><strong style="color:var(--blush);">O que Claude pesquisa em cada lead:</strong></p>
+
+      <div class="card-grid">
+        <div class="info-card">
+          <div class="info-card-name" style="margin-bottom:8px;">📸 Instagram</div>
+          <div class="info-card-text">Seguidores, número de posts, quantas contas está seguindo, bio, frequência de publicação e qualidade aparente do conteúdo.</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-name" style="margin-bottom:8px;">🌐 Site</div>
+          <div class="info-card-text">Plataforma usada, se existe ou não, qualidade visual, velocidade aparente e presença digital geral.</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-name" style="margin-bottom:8px;">🗺️ Google Maps</div>
+          <div class="info-card-text">Avaliação geral, número de reviews, se o perfil está completo e se a empresa responde às avaliações dos clientes.</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-name" style="margin-bottom:8px;">🔍 Gargalos</div>
+          <div class="info-card-text">Claude identifica as fraquezas reais de cada empresa — os problemas que você pode resolver — e usa isso nas mensagens.</div>
+        </div>
+      </div>
+
+      <p style="font-size:13px; color:var(--muted2); margin: 20px 0 12px;"><strong style="color:var(--blush);">Exemplos de gargalos que Claude identifica:</strong></p>
+
+      <div class="gargalo-list">
+        <div class="gargalo-item">"2.006 posts com apenas 11K seguidores — estratégia de conteúdo não converte"</div>
+        <div class="gargalo-item">"Seguindo 2.975 contas — tática de follow/unfollow prejudica o alcance orgânico"</div>
+        <div class="gargalo-item">"Nota 2,5 no Maps com 188 avaliações — crise de reputação sem gestão"</div>
+        <div class="gargalo-item">"Conta principal do Instagram fora do ar — presença digital comprometida"</div>
+        <div class="gargalo-item">"Sem site próprio — depende 100% de uma plataforma de terceiros"</div>
+      </div>
+
+      <div class="warn-box">
+        <span class="warn-icon">💡</span>
+        <div><strong>Por que isso importa:</strong> A mensagem de prospecção que menciona um problema real da empresa converte muito mais do que uma abordagem genérica. O Claude usa esses gargalos para criar uma abertura que mostra que você entende o negócio deles — antes de falar de preço.</div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 05 — GERAR MENSAGENS -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="section" id="mensagens">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <div>
+          <div class="section-label">Passo final</div>
+          <h2 class="section-title">Gerar as <em>mensagens</em></h2>
+        </div>
+      </div>
+
+      <p class="section-desc">Após a pesquisa, o Claude escreve mensagens personalizadas para cada lead — com base nos gargalos que encontrou. Você recebe tudo num arquivo DOCX pronto para usar.</p>
+
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+          Comando para gerar as mensagens
+        </div>
+        <pre id="cmd-gerar">Gera as mensagens personalizadas para os leads pesquisados.
+Meu nome é [seu nome], trabalho com [seus serviços] para [seu nicho].</pre>
+        <button class="copy-btn" onclick="copyCode('cmd-gerar', this)">copiar</button>
+      </div>
+
+      <p style="font-size:13px; color:var(--muted2); margin: 24px 0 12px;"><strong style="color:var(--blush);">O que você recebe no arquivo DOCX:</strong></p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-line">
+            <div class="step-circle">1</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Uma seção por lead</div>
+            <div class="step-text">O arquivo está organizado com o nome de cada empresa no topo, seguido de todas as informações encontradas na pesquisa.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-line">
+            <div class="step-circle">2</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Gargalos identificados</div>
+            <div class="step-text">Um resumo dos problemas encontrados — é o que o Claude usou para personalizar a abordagem de cada empresa.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-line">
+            <div class="step-circle">3</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Mensagem de primeiro contato (WhatsApp / DM)</div>
+            <div class="step-text">Máximo 3 linhas. Menciona algo específico da empresa, mostra que você entende o negócio e termina com uma pergunta aberta — sem forçar venda.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-line">
+            <div class="step-circle">4</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Follow-up (para 2-3 dias depois)</div>
+            <div class="step-text">Uma mensagem diferente da primeira para enviar se não houver resposta — ainda sem forçar a venda.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-line">
+            <div class="step-circle">5</div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">E-mail com assunto</div>
+            <div class="step-text">Assunto em até 7 palavras (sem clickbait) + corpo com apresentação, gancho específico e CTA suave. Máximo 5 linhas.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+          Para abrir o DOCX no Finder
+        </div>
+        <pre id="cmd-abrir">Abre o arquivo de mensagens no Finder</pre>
+        <button class="copy-btn" onclick="copyCode('cmd-abrir', this)">copiar</button>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 06 — PROMPTS -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="section" id="prompts">
+      <div class="section-header">
+        <div class="section-num-plain">✦</div>
+        <div>
+          <div class="section-label">Copie e use</div>
+          <h2 class="section-title"><em>Prompts</em> prontos</h2>
+        </div>
+      </div>
+
+      <p class="section-desc">Cole esses prompts no Claude Code para qualificação avançada, abordagem por canal e refinamento das mensagens geradas.</p>
+
+      <!-- QUALIFICAÇÃO -->
+      <p style="font-size:11px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--rose); margin: 0 0 12px;">Qualificação — antes de escolher quem pesquisar</p>
+
+      <div class="prompt-card">
+        <div class="prompt-card-label">📊 Análise de potencial dos leads</div>
+        <div class="prompt-card-text" id="txt-qualificacao">"Analisa esses leads e me diz quais são os 5 com mais potencial para contratar gestão de redes sociais. Considera: avaliação no Maps, número de reviews, presença digital aparente e potencial de crescimento no nicho. Para cada lead, me dá: Score de 1 a 10 · Motivo em 1 frase · Canal sugerido (WhatsApp / Instagram DM / E-mail) · Prioridade (Alta / Média / Baixa)"</div>
+        <button class="copy-btn" style="position:relative;top:auto;right:auto;margin-top:12px;" onclick="copyText('Analisa esses leads e me diz quais são os 5 com mais potencial para contratar gestão de redes sociais.\n\nConsidera: avaliação no Maps, número de reviews, presença digital aparente e potencial de crescimento no nicho.\n\nPara cada lead, me dá:\n- Score de 1 a 10\n- Motivo em 1 frase\n- Canal sugerido (WhatsApp / Instagram DM / E-mail)\n- Prioridade (Alta / Média / Baixa)', this)">copiar</button>
+      </div>
+
+      <!-- ABORDAGEM POR CANAL -->
+      <p style="font-size:11px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--rose); margin: 28px 0 12px;">Abordagem por Canal</p>
+
+      <div class="prompt-card">
+        <div class="prompt-card-label">💬 WhatsApp / Instagram DM</div>
+        <div class="prompt-card-text">"Para cada lead do TOP 5, cria: 1. Mensagem de primeiro contato (máx 3 linhas) — menciona algo específico da empresa (gargalo encontrado), mostra que você entende o negócio deles, termina com pergunta aberta, não com oferta. 2. Follow-up (para 2-3 dias depois sem resposta) — diferente da primeira, ainda sem forçar a venda. Meu nome é [nome]. Trabalho com [serviço] para [nicho]."</div>
+        <button class="copy-btn" style="position:relative;top:auto;right:auto;margin-top:12px;" onclick="copyText('Para cada lead do TOP 5, cria:\n1. Mensagem de primeiro contato (máx 3 linhas)\n   - Menciona algo específico da empresa (gargalo encontrado)\n   - Mostra que você entende o negócio deles\n   - Termina com pergunta aberta, não com oferta\n\n2. Follow-up (para 2-3 dias depois sem resposta)\n   - Diferente da primeira\n   - Ainda sem forçar a venda\n\nMeu nome é [nome]. Trabalho com [serviço] para [nicho].', this)">copiar</button>
+      </div>
+
+      <div class="prompt-card">
+        <div class="prompt-card-label">📧 E-mail</div>
+        <div class="prompt-card-text">"Para cada lead, cria: Assunto (máx 7 palavras, sem clickbait) + Corpo (apresentação 1 linha + gancho específico + CTA suave). Máximo 5 linhas no corpo."</div>
+        <button class="copy-btn" style="position:relative;top:auto;right:auto;margin-top:12px;" onclick="copyText('Para cada lead, cria:\n- Assunto (máx 7 palavras, sem clickbait)\n- Corpo (apresentação 1 linha + gancho específico + CTA suave)\nMáximo 5 linhas no corpo.', this)">copiar</button>
+      </div>
+
+      <!-- REFINAMENTO -->
+      <p style="font-size:11px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--rose); margin: 28px 0 12px;">Refinamento de Mensagem</p>
+
+      <div class="prompt-card">
+        <div class="prompt-card-label">✏️ Reescrever com ajuste de tom</div>
+        <div class="prompt-card-text">"Essa mensagem para [nome do lead] ficou muito [genérica / formal / longa]. Reescreve sendo mais [específica / casual / direta]. Mantém a menção ao gargalo de [descrever gargalo]."</div>
+        <button class="copy-btn" style="position:relative;top:auto;right:auto;margin-top:12px;" onclick="copyText('Essa mensagem para [nome do lead] ficou muito [genérica/formal/longa].\nReescreve sendo mais [específica/casual/direta].\nMantém a menção ao gargalo de [descrever gargalo].', this)">copiar</button>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 07 — FLUXO COMPLETO -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="section" id="fluxo">
+      <div class="section-header">
+        <div class="section-num-plain">→</div>
+        <div>
+          <div class="section-label">Visão geral</div>
+          <h2 class="section-title">Fluxo <em>completo</em></h2>
+        </div>
+      </div>
+
+      <p class="section-desc">Do zero à mensagem personalizada — 15 minutos por rodada de prospecção.</p>
+
+      <div class="flow">
+        <div class="flow-item"><div class="f-num">01</div><div class="f-name">Buscar leads</div></div>
+        <div class="flow-arrow">›</div>
+        <div class="flow-item"><div class="f-num">02</div><div class="f-name">Ver planilha</div></div>
+        <div class="flow-arrow">›</div>
+        <div class="flow-item"><div class="f-num">03</div><div class="f-name">Pesquisar</div></div>
+        <div class="flow-arrow">›</div>
+        <div class="flow-item"><div class="f-num">04</div><div class="f-name">Gerar DOCX</div></div>
+        <div class="flow-arrow">›</div>
+        <div class="flow-item"><div class="f-num">05</div><div class="f-name">Enviar</div></div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+          Fluxo completo em texto
+        </div>
+        <pre id="cmd-fluxo"><span class="comment">INSTALAÇÃO (uma vez só)</span>
+──────────────────────────────────────────────────────
+Claude Code: "Clona github.com/amandadinizmkt/maquina-de-prospeccao
+              e roda o instalar.py"
+Tempo: ~2 minutos
+
+<span class="comment">TODA VEZ QUE FOR PROSPECTAR</span>
+──────────────────────────────────────────────────────
+1. "Busca [nicho] em [cidade]"           → ~1 min · planilha abre
+2. Olha a planilha → escolhe os leads    → você decide
+3. "Pesquisa os leads X, Y e Z"          → ~3-5 min
+4. "Gera as mensagens. Sou [nome]..."    → DOCX pronto
+
+TEMPO TOTAL: ~15 minutos do zero à mensagem personalizada</pre>
+        <button class="copy-btn" onclick="copyCode('cmd-fluxo', this)">copiar</button>
+      </div>
+
+      <div class="success-box">
+        ✅ O Claude Code faz tudo: abre o navegador, lê o Google Maps, pesquisa o Instagram, gera o DOCX e abre o arquivo para você. Você só decide quem abordar e envia as mensagens.
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 08 — GITHUB -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="section" id="github">
+      <div class="section-header">
+        <div class="section-num-plain">⌥</div>
+        <div>
+          <div class="section-label">Repositório</div>
+          <h2 class="section-title"><em>GitHub</em> — arquivos do projeto</h2>
+        </div>
+      </div>
+
+      <p class="section-desc">O repositório completo está disponível publicamente. Você pode clonar, inspecionar o código e acompanhar atualizações futuras.</p>
+
+      <div class="note-box">
+        <strong>Repositório:</strong> <code>github.com/amandadinizmkt/maquina-de-prospeccao</code>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+          Clonar via terminal
+        </div>
+        <pre id="cmd-clone">git clone https://github.com/amandadinizmkt/maquina-de-prospeccao.git</pre>
+        <button class="copy-btn" onclick="copyCode('cmd-clone', this)">copiar</button>
+      </div>
+
+      <p style="font-size:13px; color:var(--muted2); margin: 24px 0 12px;"><strong style="color:var(--blush);">Arquivos do repositório:</strong></p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Arquivo</th>
+            <th>O que faz</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>instalar.py</code></td>
+            <td>Verifica o ambiente e instala todas as dependências automaticamente</td>
+          </tr>
+          <tr>
+            <td><code>prospectar.py</code></td>
+            <td>Abre o Google Maps, rola os resultados e salva o CSV com os leads</td>
+          </tr>
+          <tr>
+            <td><code>pesquisar_lead.py</code></td>
+            <td>Pesquisa Instagram, site e Maps de cada lead selecionado</td>
+          </tr>
+          <tr>
+            <td><code>gerar_mensagens.py</code></td>
+            <td>Gera o DOCX com gargalos, mensagens WhatsApp/DM, follow-up e e-mail</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 09 — CUSTOS -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="section" id="custos">
+      <div class="section-header">
+        <div class="section-num-plain">💰</div>
+        <div>
+          <div class="section-label">Referência</div>
+          <h2 class="section-title">Custos para usar <em>a máquina</em></h2>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Ferramenta</th>
+            <th>Para que serve</th>
+            <th>Custo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Claude Code</td>
+            <td>Orquestra tudo — busca, pesquisa e gera as mensagens</td>
+            <td class="cost-paid">Plano Pro (~$20/mês)</td>
+          </tr>
+          <tr>
+            <td>Python</td>
+            <td>Linguagem que roda os scripts da máquina</td>
+            <td class="cost-free">Gratuito</td>
+          </tr>
+          <tr>
+            <td>Scrapling</td>
+            <td>Lê os dados do Google Maps sem precisar de API paga</td>
+            <td class="cost-free">Gratuito</td>
+          </tr>
+          <tr>
+            <td>Playwright</td>
+            <td>Abre e controla o navegador automaticamente</td>
+            <td class="cost-free">Gratuito</td>
+          </tr>
+          <tr>
+            <td>Google Maps</td>
+            <td>Fonte dos leads — nome, telefone, avaliação, endereço</td>
+            <td class="cost-free">Gratuito (scraping)</td>
+          </tr>
+          <tr>
+            <td>python-docx</td>
+            <td>Gera o arquivo DOCX com todas as mensagens</td>
+            <td class="cost-free">Gratuito</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="success-box" style="margin-top:20px;">
+        ✅ <strong>Total para usar a máquina: custo zero além do Claude Code que você já tem.</strong><br>
+        <span style="font-size:12px; opacity:0.8;">Todas as outras ferramentas são gratuitas e de código aberto.</span>
+      </div>
+
+      <div class="note-box">
+        <strong>Você já tem o Claude Code?</strong> Então o custo adicional desta aula é zero. A máquina inteira roda dentro do Claude Code que você já usa para tudo.
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <div style="margin-top: 64px; padding: 32px 0; border-top: 1px solid var(--border); text-align: center;">
+      <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--rose); margin-bottom: 8px;">Clube Divos da IA</div>
+      <div style="font-family:'Playfair Display',serif; font-size: 18px; color: var(--cream);">Máquina de Prospecção com <em style="color:var(--blush)">IA</em></div>
+      <div style="font-size: 12px; color: var(--muted); margin-top: 8px;">Amanda Diniz · 2026 · Todos os direitos reservados</div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+function copyCode(id, btn) {
+  const el = document.getElementById(id);
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ copiado';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'copiar'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ copiado';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'copiar'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// Scroll-spy — destaca o link ativo conforme rola
+const sections = document.querySelectorAll('.section');
+const navLinks = document.querySelectorAll('.nav-link');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + entry.target.id) {
+          link.classList.add('active');
+        }
+      });
+    }
+  });
+}, { threshold: 0.3 });
+
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
