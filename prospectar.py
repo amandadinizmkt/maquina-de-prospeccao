@@ -21,6 +21,13 @@ except ImportError:
 
 SCROLL_ROUNDS = 8
 
+# Domínios a ignorar na extração de links
+IGNORAR_DOMINIOS = re.compile(
+    r'(google\.|goo\.gl|googleapis|googletagmanager|facebook\.com/tr|'
+    r'schema\.org|w3\.org|openstreetmap|apple\.com/maps)',
+    re.I
+)
+
 
 async def scroll_results(page):
     for _ in range(SCROLL_ROUNDS):
@@ -32,6 +39,35 @@ async def scroll_results(page):
             else window.scrollBy(0, 1000);
         """)
         await asyncio.sleep(1.8)
+
+
+async def buscar_link_google(nome: str, cidade: str, fetcher: DynamicFetcher) -> str:
+    """Busca o site ou Instagram da empresa no Google."""
+    try:
+        query = f"{nome} {cidade}".replace(' ', '+')
+        url = f"https://www.google.com/search?q={query}"
+
+        async def aguardar(page):
+            await asyncio.sleep(2)
+
+        resp = await fetcher.async_fetch(url, wait=2000, page_action=aguardar)
+        html = str(resp)
+
+        # Prioridade: site oficial > Instagram > Facebook > Linktree
+        padroes = [
+            r'href="(https?://(?:www\.)?instagram\.com/(?!p/|reel/|explore/)[a-zA-Z0-9_.]{3,40}/?)"',
+            r'href="(https?://linktr\.ee/[^"]{3,60})"',
+            r'href="(https?://(?!(?:www\.)?(?:google|goo\.gl|facebook|instagram|youtube|twitter|tiktok|whatsapp|wikipedia|amazon))[a-zA-Z0-9\-]{3,}\.(?:com\.br|com|net|org|io|co)[^"]{0,60})"',
+            r'href="(https?://(?:www\.)?facebook\.com/(?!sharer|share|dialog)[a-zA-Z0-9_.]{3,60}/?)"',
+        ]
+
+        for padrao in padroes:
+            m = re.search(padrao, html, re.I)
+            if m:
+                return m.group(1)
+    except Exception:
+        pass
+    return ''
 
 
 async def scrape(nicho: str, cidade: str) -> list[dict]:
@@ -60,7 +96,17 @@ async def scrape(nicho: str, cidade: str) -> list[dict]:
         reviews_m = re.search(r'aria-label="[\d,.]+ estrelas[^(]*\(([\d.]+)\)', html)
         tel_m = re.search(r'\((\d{2})\)\s*([\d\s\-]{8,13}\d)', html)
         end_m = re.search(r'>(R\.|Av\.|Rua |Alameda|Al\.|Travessa|Praça)[^<"]{5,80}', html)
-        site_m = re.search(r'href="(https?://(?!(?:www\.)?google|maps|goo\.gl)[^"]{5,80})"', html)
+
+        # Link direto no card
+        site_m = re.search(
+            r'href="(https?://(?!(?:www\.)?(?:google|goo\.gl))[^"]{5,80})"',
+            html
+        )
+        link_card = site_m.group(1) if site_m and not IGNORAR_DOMINIOS.search(site_m.group(1)) else ''
+
+        # URL da página de detalhes do Maps para buscar link depois
+        maps_link_m = re.search(r'href="(https://www\.google\.com/maps/place/[^"]+)"', html)
+        maps_link = maps_link_m.group(1) if maps_link_m else ''
 
         results.append({
             'nome': nome,
@@ -68,10 +114,20 @@ async def scrape(nicho: str, cidade: str) -> list[dict]:
             'reviews': reviews_m.group(1) if reviews_m else '',
             'telefone': f"({tel_m.group(1)}) {tel_m.group(2).strip()}" if tel_m else '',
             'endereco': end_m.group().lstrip('>').strip() if end_m else '',
-            'site': site_m.group(1) if site_m else '',
+            'link': link_card,
+            '_maps_link': maps_link,
             'nicho': nicho,
             'cidade': cidade,
         })
+
+    # Leads sem link ficam marcados para pesquisa na próxima etapa
+    for r in results:
+        if not r['link']:
+            r['link'] = ''
+
+    # Remove coluna interna
+    for r in results:
+        r.pop('_maps_link', None)
 
     return results
 
@@ -82,7 +138,7 @@ def salvar_csv(results: list[dict], nicho: str, cidade: str) -> str:
     nome_arquivo = f"leads_{slug}_{timestamp}.csv"
     caminho = Path(__file__).parent / nome_arquivo
 
-    campos = ['nome', 'avaliacao', 'reviews', 'telefone', 'endereco', 'site', 'nicho', 'cidade']
+    campos = ['nome', 'avaliacao', 'reviews', 'telefone', 'endereco', 'link', 'nicho', 'cidade']
     with open(caminho, 'w', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=campos)
         writer.writeheader()
