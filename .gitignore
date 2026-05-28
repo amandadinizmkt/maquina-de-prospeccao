@@ -1,1 +1,9 @@
 leads_*.csv
+leads_*.json
+mensagens_*.docx
+gerar_roteiro.py
+roteiro-*.docx
+slides.html
+prompt-*.md
+*.pyc
+__pycache__/
